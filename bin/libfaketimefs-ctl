@@ -1,0 +1,133 @@
+#!/usr/bin/env python
+
+from __future__ import print_function
+
+import argparse
+
+from libfaketimefs_controller import (
+    Command,
+    calculate_fake_time,
+    calculate_status,
+    get_command,
+    get_time,
+    read_commands,
+    send_command,
+    write_command,
+)
+
+
+parser = argparse.ArgumentParser(prog=__package__)
+
+parser.add_argument(
+    'table',
+    help='DynamoDB table to use',
+)
+
+group = parser.add_mutually_exclusive_group(required=True)
+group.add_argument(
+    '--out',
+    help='Read commands from the table and write to this file',
+)
+group.add_argument(
+    '--ff',
+    help='Write a fast forward command to the table',
+    # TODO: parse and return timestamp, rate
+)
+group.add_argument(
+    '--jump',
+    help='Write a jump command to the table',
+    # TODO: parse and return timestamp
+)
+group.add_argument(
+    '--stop',
+    help='Write a stop command to the table',
+)
+
+args = parser.parse_args()
+
+if args.out:
+
+    print('Reading from DynamoDB table {} and writing to {}'.format(
+        args.table,
+        args.out,
+    ))
+
+    commands = read_commands(
+        table=args.table,
+    )
+    for command in commands:
+        write_command(
+            command=command,
+            path=args.out,
+        )
+
+elif args.ff:
+
+    print('Sending fast forward command to DynamoDB table {}'.format(
+        args.table,
+    ))
+
+    when, rate = args.ff
+    now = get_time()
+
+    command = Command(
+        ref=now,
+        time1=now,
+        time2=when,
+        rate=rate,
+    )
+    send_command(
+        command=command,
+        table=args.table,
+    )
+
+elif args.jump:
+
+    print('Sending jump command to DynamoDB table {}'.format(
+        args.table,
+    ))
+
+    when = args.jump
+    now = get_time()
+
+    command = Command(
+        ref=now,
+        time1=when,
+        time2=when,
+        rate=1,
+    )
+    send_command(
+        command=command,
+        table=args.table,
+    )
+
+elif args.stop:
+
+    print('Sending stop command to DynamoDB table {}'.format(
+        args.table,
+    ))
+
+    command = get_command(
+        table=args.table,
+    )
+    if command and calculate_status(command) == 'MOVING':
+
+        # Calculate the fake time 10 seconds from now,
+        # and send a command to stop at that point in time.
+        # This avoids sending a command that jumps back in time.
+        fake_time = calculate_fake_time(command)
+        stop_time = fake_time + (5 * command.rate)
+
+        stop_command = Command(
+            ref=command.ref,
+            time1=command.time1,
+            time2=stop_time,
+            rate=command.rate,
+        )
+        send_command(
+            command=stop_command,
+            table=args.table,
+        )
+
+    else:
+        print('Already IDLE')

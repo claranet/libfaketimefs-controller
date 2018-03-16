@@ -1,2 +1,4 @@
 # libfaketimefs-controller
-Control libfaketimefs remotely
+
+Control libfaketimefs remotely using DynamoDB.
+
