@@ -43,6 +43,7 @@ def parse_timestamp_and_rate(value):
 parser = argparse.ArgumentParser(prog=__package__)
 parser.add_argument(
     '--table',
+    required=True,
     help='DynamoDB table to use',
 )
 group = parser.add_mutually_exclusive_group(required=True)
