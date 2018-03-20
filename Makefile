@@ -11,7 +11,7 @@ $(eval NAME := $(shell python setup.py --name))
 $(eval PY_NAME := $(shell python setup.py --name | sed 's/-/_/g'))
 $(eval VERSION := $(shell python setup.py --version))
 
-SOURCE := $(shell find bin libfaketimefs_controller -type f) setup.py
+SOURCE := $(shell find bin libfaketimefs_ctl -type f) setup.py
 SDIST := dist/$(NAME)-$(VERSION).tar.gz
 WHEEL := dist/$(PY_NAME)-$(VERSION)-py2.py3-none-any.whl
 

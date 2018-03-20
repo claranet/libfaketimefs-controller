@@ -1,7 +1,8 @@
-*.pyc
 *.egg-info/
+*.pyc
 .direnv/
+.terraform/
 .vscode/
 build/
 dist/
-testmount/
+terraform.tfstate*
