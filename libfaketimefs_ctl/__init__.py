@@ -41,6 +41,10 @@ def calculate_status(command):
         return 'IDLE'
 
 
+def format_command(command):
+    return '{} {} {} {}'.format(*command)
+
+
 def get_time():
     if FAKETIME_REALTIME_FILE:
         with open(FAKETIME_REALTIME_FILE) as open_file:
@@ -75,7 +79,7 @@ def read_commands(table):
 
 
 def log_command(command):
-    command_string = '{} {} {} {}'.format(*command)
+    command_string = format_command(command)
     print('[{}] {}'.format(datetime.datetime.now(), command_string))
 
 
@@ -88,7 +92,7 @@ def send_command(command, table):
                 'S': 'command',
             },
             'Value': {
-                'S': '{} {} {} {}'.format(*command),
+                'S': format_command(command),
             },
         }
     )
@@ -96,6 +100,6 @@ def send_command(command, table):
 
 def write_command(command, path):
     log_command(command)
-    command_string = '{} {} {} {}'.format(*command)
+    command_string = format_command(command)
     with open(path, 'w') as open_file:
         open_file.write(command_string)

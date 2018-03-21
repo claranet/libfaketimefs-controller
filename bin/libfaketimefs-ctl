@@ -14,6 +14,7 @@ from libfaketimefs_ctl import (
     Command,
     calculate_fake_time,
     calculate_status,
+    format_command,
     get_time,
     read_command,
     read_commands,
@@ -156,16 +157,18 @@ elif args.query:
     datetime_real = datetime.datetime.fromtimestamp(timestamp_real)
 
     if command:
+        command_string = format_command(command)
         timestamp_fake = int(calculate_fake_time(command))
         status = calculate_status(command)
     else:
+        command_string = ''
         timestamp_fake = timestamp_real
         status = 'IDLE'
 
     datetime_fake = datetime.datetime.fromtimestamp(timestamp_fake)
 
     result = {
-        'command': '{} {} {} {}'.format(*command),
+        'command': command_string,
         'datetime': {
             'fake': datetime_fake.isoformat(),
             'real': datetime_real.isoformat(),
