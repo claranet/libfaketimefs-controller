@@ -34,11 +34,16 @@ def parse_timestamp(value):
 
 
 def parse_timestamp_and_rate(value):
+
     value, rate = value.rsplit(' ', 1)
-    return (
-        parse_timestamp(value),
-        int(rate),
-    )
+
+    timestamp = parse_timestamp(value)
+
+    rate = int(rate)
+    if rate < 1:
+        raise ValueError('rate must be at least 1')
+
+    return (timestamp, rate)
 
 
 parser = argparse.ArgumentParser(prog=__package__)

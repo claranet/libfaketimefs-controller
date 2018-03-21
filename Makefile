@@ -3,7 +3,7 @@
 MAKEFLAGS += --warn-undefined-variables --no-print-directory
 SHELL := bash
 .SHELLFLAGS := -eu -o pipefail -c
-.DEFAULT_GOAL := build
+.DEFAULT_GOAL := test
 .DELETE_ON_ERROR:
 .SUFFIXES:
 
@@ -20,6 +20,11 @@ $(SDIST): $(SOURCE)
 
 $(WHEEL): $(SOURCE)
 	python setup.py bdist_wheel
+
+.PHONY: test
+test:
+	python -m doctest libfaketimefs_ctl/__init__.py
+	flake8 bin/libfaketimefs-ctl libfaketimefs_ctl/__init__.py setup.py
 
 .PHONY: build
 build: $(SDIST) $(WHEEL)

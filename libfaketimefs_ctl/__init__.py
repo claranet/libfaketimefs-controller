@@ -12,26 +12,94 @@ FAKETIME_REALTIME_FILE = os.environ.get('FAKETIME_REALTIME_FILE')
 Command = collections.namedtuple('Command', 'ref, time1, time2, rate')
 
 dynamodb = boto3.client('dynamodb')
-dynamodb_streams = boto3.client('dynamodbstreams')
 
 
-def calculate_fake_time(command):
+def calculate_fake_time(command, now=None):
+    """
+    Calculates the fake time from a command and the real time.
+
+    >>> cmd = (0, 0, 10, 2)
+    >>> calculate_fake_time(cmd, now=0)
+    0
+    >>> calculate_fake_time(cmd, now=1)
+    2
+    >>> calculate_fake_time(cmd, now=5)
+    10
+    >>> calculate_fake_time(cmd, now=6)
+    11.0
+
+    >>> cmd = (0, 10, 20, 2)
+    >>> calculate_fake_time(cmd, now=0)
+    10
+    >>> calculate_fake_time(cmd, now=1)
+    12
+    >>> calculate_fake_time(cmd, now=5)
+    20
+    >>> calculate_fake_time(cmd, now=6)
+    21.0
+
+    """
+
+    if now is None:
+        now = time()
+
+    offset = calculate_offset(command, now)
+
+    return now + offset
+
+
+def calculate_offset(command, now=None):
+    """
+    Calculates the offset from a command and the real time.
+
+    >>> cmd = (0, 0, 10, 2)
+    >>> calculate_offset(cmd, now=0)
+    0
+    >>> calculate_offset(cmd, now=1)
+    1
+    >>> calculate_offset(cmd, now=5)
+    5
+    >>> calculate_offset(cmd, now=6)
+    5.0
+
+    >>> cmd = (0, 10, 20, 2)
+    >>> calculate_offset(cmd, now=0)
+    10
+    >>> calculate_offset(cmd, now=1)
+    11
+    >>> calculate_offset(cmd, now=5)
+    15
+    >>> calculate_offset(cmd, now=6)
+    15.0
+
+    """
+
     ref, time1, time2, rate = command
 
+    # The starting point of fast forwarding is already in the future
+    # if time1 is ahead of when the command was issued (ref time).
+    initial_offset = time1 - ref
+
+    # There is a window of time where it will be fast forwarding.
+    # Calculate that and also how much real time that would take.
     window_fast = time2 - time1
     window_real = window_fast / float(rate)
 
-    now = get_time()
+    # Get how much real time has passed since the command was issued.
+    if now is None:
+        now = get_time()
+    elapsed = now - ref
 
-    elapsed_real = now - ref
-    if elapsed_real > window_real:
-        elapsed_fast = window_fast
-        elapsed_normal = elapsed_real - window_real
-    else:
-        elapsed_fast = elapsed_real * rate
-        elapsed_normal = 0
+    # Discard any time elapsed after the fast forwarding end point,
+    # because the offset should stop increasing at that point.
+    if elapsed > window_real:
+        elapsed = window_real
 
-    return time1 + elapsed_fast + elapsed_normal
+    # Now calculate the offset. Use the intial offset and the fast
+    # forwaded time. Subtract the amount of time it has been fast
+    # forwarding because that is already included in the fast amount.
+    elapsed_fast = elapsed * rate
+    return initial_offset + elapsed_fast - elapsed
 
 
 def calculate_status(command):
