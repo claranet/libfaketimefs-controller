@@ -107,7 +107,11 @@ elif args.ff:
     timestamp, rate = args.ff
 
     now = int(get_time())
-    fake_time = int(calculate_fake_time(command))
+
+    if command:
+        fake_time = int(calculate_fake_time(command))
+    else:
+        fake_time = now
 
     if timestamp < fake_time:
         sys.stderr.write('Error: cannot fast forward backwards\n')
