@@ -41,7 +41,7 @@ def calculate_fake_time(command, now=None):
     """
 
     if now is None:
-        now = time()
+        now = get_time()
 
     offset = calculate_offset(command, now)
 
