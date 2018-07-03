@@ -116,7 +116,7 @@ def format_command(command):
 def get_time():
     if FAKETIME_REALTIME_FILE:
         with open(FAKETIME_REALTIME_FILE) as open_file:
-            return open_file.read()
+            return float(open_file.read())
     else:
         return time.time()
 
