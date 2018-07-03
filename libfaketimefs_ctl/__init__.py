@@ -3,9 +3,12 @@ from __future__ import print_function
 import boto3
 import collections
 import datetime
+import libfaketimefs_botocore
 import os
 import time
 
+
+libfaketimefs_botocore.patch_botocore()
 
 FAKETIME_REALTIME_FILE = os.environ.get('FAKETIME_REALTIME_FILE')
 
