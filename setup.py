@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='libfaketimefs-ctl',
-    version='0.0.7',
+    version='0.0.8',
     description='libfaketimefs controller',
     author='Raymond Butcher',
     author_email='ray.butcher@claranet.uk',
