@@ -18,7 +18,7 @@ setup(
     ),
     install_requires=(
         'boto3',
-        'libfaketimefs-botocore',
+        'libfaketimefs-botocore>=0.0.2',
         'py-dateutil',
     ),
 )
